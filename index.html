@@ -3,437 +3,561 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple E-Commerce App</title>
-    <!-- Use Tailwind CSS for a modern and responsive design -->
+    <title>Gemini Marketplace</title>
+    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
-        }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            max-width: 28rem;
-            width: 100%;
-            text-align: center;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .container-xl { max-width: 1280px; }
+        .card { @apply bg-white p-8 md:p-12 rounded-2xl shadow-xl w-full text-center; }
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 100;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            text-align: center;
-            max-width: 24rem;
-            width: 100%;
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
         }
+        .modal-content { @apply bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full text-center; }
+        .input-group label { @apply block text-left text-gray-700 font-semibold mb-2; }
+        .input-group input, .input-group select, .input-group textarea { @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500; }
+        .product-item { @apply bg-gray-100 p-6 rounded-xl flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 hover:bg-gray-200 transition duration-200; }
+        
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px; /* Hidden by default */
+            width: 400px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -4px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.visible { right: 0; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 flex min-h-screen">
 
-    <!-- Main container for the entire application -->
-    <div class="container">
+    <!-- Main App Container -->
+    <main id="app-container" class="flex-grow p-4 flex items-center justify-center transition-all duration-300">
 
-        <!-- All application sections are hidden by default, and will be shown by JavaScript -->
-        
-        <!-- ======================= -->
-        <!-- Landing Page Section -->
-        <!-- ======================= -->
-        <div id="landing-page" class="card">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">Welcome to the Marketplace</h1>
-            <p class="text-gray-600 mb-8">Please select your role to continue.</p>
+        <!-- Landing Page View -->
+        <div id="landing-view" class="card max-w-lg">
+            <h1 class="text-4xl font-bold text-gray-800 mb-6">Welcome to Gemini Marketplace</h1>
+            <p class="text-gray-600 mb-8 text-lg">Please select your role to continue.</p>
             <div class="flex flex-col space-y-4">
-                <button onclick="showSellerLogin()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 transform hover:scale-105">
+                <button id="seller-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300 transform hover:scale-105">
                     Seller
                 </button>
-                <button onclick="showBuyerPage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 transform hover:scale-105">
+                <button id="buyer-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300 transform hover:scale-105">
                     Buyer
                 </button>
             </div>
         </div>
 
-        <!-- ======================= -->
-        <!-- Seller Login Section -->
-        <!-- ======================= -->
-        <div id="seller-login" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Seller Login</h2>
+        <!-- Seller Login View -->
+        <div id="seller-login-view" class="card max-w-lg hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Seller Login</h2>
             <div class="space-y-4">
-                <input type="email" id="seller-email" placeholder="Email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="password" id="seller-password" placeholder="Password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <p id="login-error" class="text-red-500 text-sm hidden">Invalid email or password.</p>
-                <button onclick="handleSellerLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
-                    Start Selling
-                </button>
-            </div>
-        </div>
-
-        <!-- ======================= -->
-        <!-- Seller Dashboard Section -->
-        <!-- ======================= -->
-        <div id="seller-dashboard" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Seller Dashboard</h2>
-            <div id="seller-pre-publish" class="space-y-4">
-                <p class="text-gray-600">Add a product to get started.</p>
-                <!-- This input simulates the 'Add data' button and file explorer -->
-                <input type="file" id="product-file" accept=".txt,.csv,.xlsx,.xls,.pbix" class="w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                
-                <!-- Set Price Section -->
-                <div class="mt-6">
-                    <label for="product-price" class="block text-left text-gray-700 font-semibold mb-2">Set Price (USD)</label>
-                    <div class="relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500">$</span>
-                        </div>
-                        <input type="text" id="product-price" oninput="validatePrice(this)" class="block w-full pl-7 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500">USD</span>
-                        </div>
-                    </div>
-                    <p id="price-error" class="text-red-500 text-sm text-left mt-1 hidden">Please enter a valid number.</p>
+                <div class="input-group">
+                    <label for="seller-email">Email</label>
+                    <input type="email" id="seller-email" placeholder="rmasood524@gmail.com">
                 </div>
-
-                <button onclick="publishProduct()" id="publish-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 mt-6">
-                    Publish
-                </button>
-            </div>
-            
-            <!-- Seller post-publish view -->
-            <div id="seller-post-publish" class="hidden">
-                <h3 class="text-xl font-semibold text-green-600 mb-4">Product Published! ✅</h3>
-                <p class="text-gray-700">Your item has been successfully listed and is now visible to buyers.</p>
-            </div>
-
-            <!-- Back to landing page button for both views -->
-            <button onclick="showLandingPage()" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">
-                &larr; Back to Home
-            </button>
-        </div>
-
-        <!-- ======================= -->
-        <!-- Buyer Section -->
-        <!-- ======================= -->
-        <div id="buyer-page" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Marketplace</h2>
-            <div id="buyer-products" class="space-y-6">
-                <!-- Products will be displayed here -->
-                <p class="text-gray-600" id="no-products">No products have been published yet.</p>
-            </div>
-            <button onclick="showLandingPage()" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">
-                &larr; Back to Home
-            </button>
-        </div>
-
-        <!-- ======================= -->
-        <!-- Payment Options Page -->
-        <!-- ======================= -->
-        <div id="payment-options-page" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Select a Payment Method</h2>
-            <p id="payment-options-info" class="text-gray-700 mb-4 font-semibold"></p>
-            <div class="space-y-4">
-                <label for="payment-method" class="block text-left text-gray-700 font-semibold">Payment Method</label>
-                <select id="payment-method" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="credit-card">Credit Card</option>
-                    <option value="paypal">PayPal (Simulated)</option>
-                    <option value="bank-transfer">Bank Transfer (Simulated)</option>
-                </select>
-                <button onclick="continueToPayment()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+                <div class="input-group">
+                    <label for="seller-password">Password</label>
+                    <input type="password" id="seller-password" placeholder="Ahmad1@1">
+                </div>
+                <button id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300">
                     Continue
                 </button>
             </div>
-            <button onclick="showBuyerPage()" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">
-                &larr; Back to Marketplace
-            </button>
+            <button id="back-from-login" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Home</button>
         </div>
 
-        <!-- ======================= -->
-        <!-- Card Details Page (Simulated) -->
-        <!-- ======================= -->
-        <div id="card-details-page" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Enter Card Details</h2>
-            <p id="card-details-info" class="text-gray-700 mb-4 font-semibold"></p>
-            <div class="space-y-4">
-                <!-- Card Number Section -->
-                <div>
-                    <label for="card-number" class="block text-left text-gray-700 font-semibold mb-2">Card Number</label>
-                    <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <!-- Seller Dashboard View -->
+        <div id="seller-dashboard-view" class="card max-w-2xl hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Seller Dashboard</h2>
+            <p class="text-sm text-gray-500 mb-4">Note: This is a standalone version. Product data will not persist on page refresh.</p>
+            <p id="seller-id-display" class="text-sm text-gray-500 mb-4"></p>
+            <div class="space-y-6 text-left">
+                <div class="input-group">
+                    <label class="block text-gray-700 font-semibold mb-2">Upload a File</label>
+                    <input type="file" id="product-file" accept=".txt,.csv,.xlsx,.xls,.pbix" class="w-full text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
                 </div>
-                <!-- Expiration Date Section -->
-                <div>
-                    <label for="card-expiry" class="block text-left text-gray-700 font-semibold mb-2">Expiration Date</label>
-                    <input type="text" id="card-expiry" placeholder="MM/YY" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="input-group">
+                    <label for="product-price">Set Price (in USD)</label>
+                    <div class="relative rounded-lg shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-gray-500">$</span></div>
+                        <input type="text" id="product-price" class="block w-full pl-7 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00"/>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span class="text-gray-500">USD</span></div>
+                    </div>
                 </div>
-                <!-- CVV Section -->
-                <div>
-                    <label for="card-cvv" class="block text-left text-gray-700 font-semibold mb-2">CVV</label>
-                    <input type="text" id="card-cvv" placeholder="XXX" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
+                <button id="publish-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300">
+                    Publish
+                </button>
+            </div>
+            <button id="back-from-dashboard" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Home</button>
+        </div>
 
-                <p id="payment-error" class="text-red-500 text-sm hidden">Invalid payment details. Please try again.</p>
-                
-                <button onclick="payNow()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+        <!-- Buyer Page View -->
+        <div id="buyer-page-view" class="card max-w-5xl hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Explore the Marketplace</h2>
+            <div id="product-list" class="space-y-6 text-left">
+                <!-- Products will be dynamically inserted here -->
+                <p class="text-gray-600 text-center">No products have been published yet.</p>
+            </div>
+            <button id="back-from-buyer" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Home</button>
+        </div>
+        
+        <!-- Payment Options View -->
+        <div id="payment-options-view" class="card max-w-xl hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Select a Payment Method</h2>
+            <p id="payment-product-info" class="text-gray-700 mb-4 font-semibold text-lg"></p>
+            <div class="space-y-4 text-left">
+                <div class="input-group">
+                    <label for="payment-method">Payment Method</label>
+                    <select id="payment-method" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="credit-card">Credit Card</option>
+                        <option value="paypal">PayPal (Simulated)</option>
+                        <option value="bank-transfer">Bank Transfer (Simulated)</option>
+                    </select>
+                </div>
+                <button id="continue-payment-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300">
+                    Continue to Payment
+                </button>
+            </div>
+            <button id="back-from-payment" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Marketplace</button>
+        </div>
+
+        <!-- Card Details View -->
+        <div id="card-details-view" class="card max-w-xl hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Enter Payment Details</h2>
+            <p id="card-product-info" class="text-gray-700 mb-4 font-semibold text-lg"></p>
+            <div class="space-y-4 text-left">
+                <div class="input-group">
+                    <label for="card-holder-name">Card Holder Name</label>
+                    <input type="text" id="card-holder-name" placeholder="John Doe" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                </div>
+                <div class="input-group">
+                    <label for="card-number">Card Number</label>
+                    <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="card-expiry">Expiration Date</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                    </div>
+                    <div class="input-group">
+                        <label for="card-cvv">CVV</label>
+                        <input type="text" id="card-cvv" placeholder="XXX" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                    </div>
+                </div>
+                <button id="pay-now-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300">
                     Pay Now
                 </button>
             </div>
-            <button onclick="showPaymentOptionsPage(currentProduct)" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">
-                &larr; Back to Payment Options
-            </button>
+            <button id="back-from-card" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Payment Options</button>
         </div>
-
-        <!-- ======================= -->
-        <!-- Download Page (Simulated) -->
-        <!-- ======================= -->
-        <div id="download-page" class="card hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Payment Successful!</h2>
-            <p class="text-gray-700 mb-4">Please enter your email to receive your data.</p>
-            <div class="space-y-4">
-                <input type="email" id="buyer-email" placeholder="Email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <p id="email-error" class="text-red-500 text-sm hidden">Please enter a valid @gmail.com address.</p>
-                <button onclick="getData()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+        
+        <!-- Download View -->
+        <div id="download-view" class="card max-w-lg hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Payment Successful!</h2>
+            <p class="text-gray-700 mb-4 text-lg">Please enter your email to receive your data.</p>
+            <div class="space-y-4 text-left">
+                <div class="input-group">
+                    <label for="buyer-email">Email Address</label>
+                    <input type="email" id="buyer-email" placeholder="youremail@gmail.com" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                </div>
+                <button id="get-data-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-300">
                     Get Data
                 </button>
             </div>
-            <button onclick="showLandingPage()" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">
-                &larr; Back to Home
+            <button id="back-from-download" class="mt-8 text-gray-500 hover:text-gray-900 transition duration-300">&larr; Back to Home</button>
+        </div>
+    </main>
+
+    <!-- Sidebars for AI and Errors -->
+    <aside id="ai-sidebar" class="sidebar">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800">Ask Gemini AI</h3>
+            <button id="close-ai-sidebar-btn" class="text-gray-500 hover:text-gray-900 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
             </button>
         </div>
+        <div id="chat-history" class="p-4 flex-grow overflow-y-auto space-y-4">
+            <!-- Chat messages will be appended here -->
+            <div class="bg-gray-100 p-3 rounded-lg text-sm text-left">Hello! I'm here to help with any questions you have about this app or the marketplace.</div>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex space-x-2">
+            <input type="text" id="chat-input" placeholder="Type your question..." class="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+            <button id="send-chat-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </button>
+        </div>
+    </aside>
 
+    <aside id="errors-sidebar" class="sidebar">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800">Report an Error</h3>
+            <button id="close-errors-sidebar-btn" class="text-gray-500 hover:text-gray-900 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-4 flex-grow flex flex-col space-y-4 text-left">
+            <p class="text-gray-600">If you encounter an issue, please describe it below.</p>
+            <textarea id="error-description" rows="6" placeholder="Describe the error you found..." class="flex-grow"></textarea>
+            <button id="submit-error-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl text-lg transition duration-300">
+                Submit Error
+            </button>
+        </div>
+    </aside>
+
+    <!-- Floating Buttons for AI and Errors -->
+    <div class="fixed bottom-8 right-8 flex flex-col space-y-4 z-50">
+        <button id="ask-ai-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a5 5 0 0 0-5 5c0 1.25.5 2.5 1.5 3.5.5.5 1.5 1.5 2 2 .5.5 1 1 1 2v.5a5 5 0 1 0 5-5c0-1.25-.5-2.5-1.5-3.5-.5-.5-1.5-1.5-2-2-.5-.5-1-1-1-2v-.5a5 5 0 0 0-5-5z"></path>
+                <path d="M12 17.5c-2.76 0-5-1.24-5-5s2.24-5 5-5 5 1.24 5 5-2.24 5-5 5z"></path>
+            </svg>
+        </button>
+        <button id="report-error-btn" class="bg-red-500 hover:bg-red-600 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </button>
     </div>
 
-    <!-- Custom Modal/Message Box -->
-    <div id="message-modal" class="modal hidden">
+    <!-- Custom Modal for Alerts -->
+    <div id="app-modal" class="modal">
         <div class="modal-content">
             <p id="modal-message" class="text-gray-800 text-lg mb-4"></p>
-            <button onclick="closeModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl">
+            <button id="modal-ok-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl">
                 OK
             </button>
         </div>
     </div>
 
-    <script>
-        // Store product data in a simple array for the session
-        let publishedProducts = [];
-        let currentProduct = null; // To keep track of the product being purchased
+    <!-- Standalone App Logic -->
+    <script type="module">
+        // Global variables for in-memory data
+        let currentProduct = null;
+        let userId = 'user-123'; // Hardcoded user ID for standalone mode
+        let products = []; // In-memory "database"
+        let productIdCounter = 1;
+        let chatHistory = [];
+        
+        // DOM elements
+        const views = {
+            'landing': document.getElementById('landing-view'),
+            'sellerLogin': document.getElementById('seller-login-view'),
+            'sellerDashboard': document.getElementById('seller-dashboard-view'),
+            'buyerPage': document.getElementById('buyer-page-view'),
+            'paymentOptions': document.getElementById('payment-options-view'),
+            'cardDetails': document.getElementById('card-details-view'),
+            'download': document.getElementById('download-view')
+        };
+        const modal = document.getElementById('app-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const aiSidebar = document.getElementById('ai-sidebar');
+        const errorsSidebar = document.getElementById('errors-sidebar');
+        const mainContainer = document.getElementById('app-container');
 
-        // --- Modal Functions ---
-        function showModal(message) {
-            document.getElementById('modal-message').textContent = message;
-            document.getElementById('message-modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('message-modal').classList.add('hidden');
-        }
-
-
-        // --- View Switching Functions ---
-
-        function hideAllSections() {
-            document.querySelectorAll('.card').forEach(card => {
-                card.classList.add('hidden');
+        // Function to show a specific view and hide all others
+        const showView = (viewId, data = null) => {
+            Object.values(views).forEach(v => {
+                if (v) v.classList.add('hidden');
             });
-        }
+            if (views[viewId]) {
+                views[viewId].classList.remove('hidden');
+                if (data) {
+                    currentProduct = data;
+                }
+            } else {
+                console.error(`Attempted to show a view with an invalid ID: ${viewId}`);
+            }
+        };
 
-        function showLandingPage() {
-            hideAllSections();
-            document.getElementById('landing-page').classList.remove('hidden');
-        }
+        // Function to show the custom modal
+        const showModal = (message) => {
+            modalMessage.textContent = message;
+            modal.classList.add('visible');
+        };
 
-        function showSellerLogin() {
-            hideAllSections();
-            document.getElementById('seller-login').classList.remove('hidden');
-            // Reset fields
-            document.getElementById('seller-email').value = '';
-            document.getElementById('seller-password').value = '';
-            document.getElementById('login-error').classList.add('hidden');
-        }
+        // Function to hide the custom modal
+        const closeModal = () => {
+            modal.classList.remove('visible');
+        };
 
-        function showSellerDashboard() {
-            hideAllSections();
-            document.getElementById('seller-dashboard').classList.remove('hidden');
-            // Always show the pre-publish view initially
-            document.getElementById('seller-pre-publish').classList.remove('hidden');
-            document.getElementById('seller-post-publish').classList.add('hidden');
-        }
+        // Function to handle sidebar visibility
+        const toggleSidebar = (sidebar, shouldOpen) => {
+            if (shouldOpen) {
+                // Close other sidebar if open
+                if (sidebar.id === 'ai-sidebar' && errorsSidebar.classList.contains('visible')) {
+                    errorsSidebar.classList.remove('visible');
+                } else if (sidebar.id === 'errors-sidebar' && aiSidebar.classList.contains('visible')) {
+                    aiSidebar.classList.remove('visible');
+                }
+                sidebar.classList.add('visible');
+                mainContainer.classList.add('mr-96'); // Adjust main content margin
+            } else {
+                sidebar.classList.remove('visible');
+                mainContainer.classList.remove('mr-96');
+            }
+        };
 
-        function showBuyerPage() {
-            hideAllSections();
-            document.getElementById('buyer-page').classList.remove('hidden');
+        // Event listeners for view switching
+        document.getElementById('seller-btn').addEventListener('click', () => showView('sellerLogin'));
+        document.getElementById('buyer-btn').addEventListener('click', () => {
+            showView('buyerPage');
             renderBuyerProducts();
-        }
+        });
+        document.getElementById('back-from-login').addEventListener('click', () => showView('landing'));
+        document.getElementById('back-from-dashboard').addEventListener('click', () => showView('landing'));
+        document.getElementById('back-from-buyer').addEventListener('click', () => showView('landing'));
+        document.getElementById('back-from-payment').addEventListener('click', () => showView('buyerPage', currentProduct));
+        document.getElementById('back-from-card').addEventListener('click', () => showView('paymentOptions', currentProduct));
+        document.getElementById('back-from-download').addEventListener('click', () => showView('landing'));
+        document.getElementById('modal-ok-btn').addEventListener('click', closeModal);
 
-        function showPaymentOptionsPage(product) {
-            currentProduct = product; // Set the current product for the payment flow
-            hideAllSections();
-            document.getElementById('payment-options-page').classList.remove('hidden');
-            // Display product information on the payment options page
-            document.getElementById('payment-options-info').textContent = `Purchasing: ${product.name} - $${product.price} USD`;
-        }
-
-        function showCardDetailsPage() {
-            hideAllSections();
-            document.getElementById('card-details-page').classList.remove('hidden');
-            document.getElementById('card-details-info').textContent = `Product: ${currentProduct.name} - $${currentProduct.price} USD`;
-            document.getElementById('payment-error').classList.add('hidden');
-        }
-
-        function showDownloadPage() {
-            hideAllSections();
-            document.getElementById('download-page').classList.remove('hidden');
-            // Reset fields
-            document.getElementById('buyer-email').value = '';
-            document.getElementById('email-error').classList.add('hidden');
-        }
+        // Sidebar button listeners
+        document.getElementById('ask-ai-btn').addEventListener('click', () => toggleSidebar(aiSidebar, !aiSidebar.classList.contains('visible')));
+        document.getElementById('report-error-btn').addEventListener('click', () => toggleSidebar(errorsSidebar, !errorsSidebar.classList.contains('visible')));
+        document.getElementById('close-ai-sidebar-btn').addEventListener('click', () => toggleSidebar(aiSidebar, false));
+        document.getElementById('close-errors-sidebar-btn').addEventListener('click', () => toggleSidebar(errorsSidebar, false));
 
         // --- Seller Login Logic ---
-
-        function handleSellerLogin() {
+        document.getElementById('login-btn').addEventListener('click', () => {
             const email = document.getElementById('seller-email').value;
             const password = document.getElementById('seller-password').value;
-            const errorMsg = document.getElementById('login-error');
-            
-            // Hardcoded credentials as requested
+            // Hardcoded credentials check
             if (email === 'rmasood524@gmail.com' && password === 'Ahmad1@1') {
-                errorMsg.classList.add('hidden');
-                showSellerDashboard();
+                showView('sellerDashboard');
+                document.getElementById('seller-id-display').textContent = `Your User ID: ${userId}`;
             } else {
-                errorMsg.classList.remove('hidden');
+                showModal("Invalid email or password. Please use 'rmasood524@gmail.com' and 'Ahmad1@1'.");
             }
-        }
-
+        });
+    
         // --- Seller Dashboard Logic ---
-
-        function validatePrice(input) {
-            const priceError = document.getElementById('price-error');
-            // Use a regular expression to check for numbers (integers or decimals)
-            const price = input.value;
-            if (!/^\d*(\.\d{0,2})?$/.test(price) && price !== '') {
-                priceError.classList.remove('hidden');
-                input.value = price.slice(0, -1); // Remove the invalid character
-            } else {
-                priceError.classList.add('hidden');
+        document.getElementById('product-price').addEventListener('input', (e) => {
+            // Only allow numbers and decimal point
+            if (!/^\d*(\.\d{0,2})?$/.test(e.target.value) && e.target.value !== '') {
+                e.target.value = e.target.value.slice(0, -1);
             }
-        }
+        });
 
-        function publishProduct() {
+        document.getElementById('publish-btn').addEventListener('click', () => {
             const fileInput = document.getElementById('product-file');
             const priceInput = document.getElementById('product-price');
-            const priceError = document.getElementById('price-error');
+            const fileName = fileInput.files.length > 0 ? fileInput.files[0].name : null;
+            const price = priceInput.value;
+
+            if (!fileName || !price) {
+                showModal("Please select a file and enter a valid price.");
+                return;
+            }
             
-            // Check for valid price and file selection
-            if (priceInput.value === '' || isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) <= 0) {
-                priceError.classList.remove('hidden');
-                return;
-            }
+            // Add product to in-memory array
+            const newProduct = {
+                id: productIdCounter++,
+                name: fileName,
+                price: parseFloat(price).toFixed(2),
+                sellerId: userId,
+                publishedAt: new Date().toISOString()
+            };
+            products.push(newProduct);
 
-            if (fileInput.files.length === 0) {
-                showModal("Please select a file to publish.");
-                return;
-            }
+            showModal("Your data is published and available for buyers!");
+            // Clear inputs
+            fileInput.value = '';
+            priceInput.value = '';
+            showView('sellerDashboard');
+        });
 
-            // Get file name and price to simulate publishing
-            const fileName = fileInput.files[0].name;
-            const price = parseFloat(priceInput.value).toFixed(2);
-
-            // Save the data to our temporary storage
-            publishedProducts.push({ name: fileName, price: price });
-
-            // Update the seller's view to show only the published confirmation
-            document.getElementById('seller-pre-publish').classList.add('hidden');
-            document.getElementById('seller-post-publish').classList.remove('hidden');
-        }
-        
         // --- Buyer Page Logic ---
-
-        function renderBuyerProducts() {
-            const productContainer = document.getElementById('buyer-products');
-            productContainer.innerHTML = ''; // Clear previous products
-
-            if (publishedProducts.length === 0) {
-                productContainer.innerHTML = '<p class="text-gray-600" id="no-products">No products have been published yet.</p>';
+        const renderBuyerProducts = () => {
+            const productList = document.getElementById('product-list');
+            if (!productList) return;
+            productList.innerHTML = ''; // Clear existing list
+            if (products.length === 0) {
+                productList.innerHTML = '<p class="text-gray-600 text-center">No products have been published yet.</p>';
                 return;
             }
-
-            publishedProducts.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'bg-gray-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0';
-                productCard.innerHTML = `
-                    <p class="text-gray-800 font-semibold">${product.name}</p>
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product-item');
+                productDiv.innerHTML = `
+                    <p class="text-gray-800 font-semibold text-lg">${product.name}</p>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-600 font-bold text-lg">$${product.price} USD</span>
-                        <button onclick='showPaymentOptionsPage(${JSON.stringify(product)})' class="bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2 px-4 rounded-full transition duration-300">
-                            Buy Now
+                        <span class="text-green-600 font-bold text-xl">$${product.price} USD</span>
+                        <button class="pay-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105">
+                            Pay
                         </button>
                     </div>
                 `;
-                productContainer.appendChild(productCard);
+                productDiv.querySelector('.pay-btn').addEventListener('click', () => {
+                    showView('paymentOptions', product);
+                    document.getElementById('payment-product-info').textContent = `Purchasing: ${product.name} - $${product.price} USD`;
+                });
+                productList.appendChild(productDiv);
             });
-        }
+        };
 
         // --- Payment Logic (Simulated) ---
-        function continueToPayment() {
-            const paymentMethod = document.getElementById('payment-method').value;
-            // For this simulation, we'll only show the card details page for credit card.
-            // A real app would have different flows for each payment method.
-            if (paymentMethod === 'credit-card') {
-                showCardDetailsPage();
+        document.getElementById('continue-payment-btn').addEventListener('click', () => {
+            const method = document.getElementById('payment-method').value;
+            if (method === 'credit-card') {
+                showView('cardDetails', currentProduct);
+                document.getElementById('card-product-info').textContent = `Product: ${currentProduct.name} - $${currentProduct.price} USD`;
             } else {
                 showModal("This payment method is not supported in this simulation.");
             }
-        }
+        });
 
-        function payNow() {
+        document.getElementById('pay-now-btn').addEventListener('click', () => {
+            const cardHolderName = document.getElementById('card-holder-name').value;
             const cardNumber = document.getElementById('card-number').value;
             const cardExpiry = document.getElementById('card-expiry').value;
             const cardCvv = document.getElementById('card-cvv').value;
-            const paymentError = document.getElementById('payment-error');
 
-            // Simple simulated validation. A real app would be much more secure.
-            if (cardNumber && cardExpiry && cardCvv && cardNumber === '1111222233334444') {
-                paymentError.classList.add('hidden');
-                showModal("Payment successful! Redirecting to download page.");
-                setTimeout(showDownloadPage, 1500); // Wait a bit before showing the next page
+            // Simple simulated validation
+            if (cardHolderName && cardNumber.length === 16 && cardExpiry.length === 5 && cardCvv.length === 3) {
+                showModal("Payment successful! The amount has been transferred to the specified account.");
+                setTimeout(() => showView('download'), 1500);
             } else {
-                paymentError.classList.remove('hidden');
+                showModal("Invalid payment details. Please enter correct details.");
             }
-        }
+        });
 
         // --- Data Download Logic (Simulated) ---
-
-        function getData() {
-            const emailInput = document.getElementById('buyer-email');
-            const email = emailInput.value;
-            const emailError = document.getElementById('email-error');
-
-            // Validate that the email ends with @gmail.com as requested
-            if (email.endsWith('@gmail.com')) {
-                emailError.classList.add('hidden');
+        document.getElementById('get-data-btn').addEventListener('click', () => {
+            const email = document.getElementById('buyer-email').value;
+            if (email && email.endsWith('@gmail.com')) {
                 showModal(`Success! A download link for ${currentProduct.name} has been sent to ${email}.`);
             } else {
-                emailError.classList.remove('hidden');
+                showModal("Please enter a valid @gmail.com address.");
             }
-        }
-    </script>
+        });
 
+        // --- AI Chat Logic ---
+        const chatInput = document.getElementById('chat-input');
+        const chatHistoryDiv = document.getElementById('chat-history');
+        const sendChatBtn = document.getElementById('send-chat-btn');
+
+        const addMessageToChat = (text, isUser = false) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('p-3', 'rounded-lg', 'text-sm', 'text-left');
+            if (isUser) {
+                messageDiv.classList.add('bg-indigo-100', 'self-end', 'text-right');
+            } else {
+                messageDiv.classList.add('bg-gray-100');
+            }
+            messageDiv.textContent = text;
+            chatHistoryDiv.appendChild(messageDiv);
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight; // Auto-scroll
+        };
+        
+        const askAI = async (prompt) => {
+            addMessageToChat(prompt, true);
+            chatInput.value = '';
+            
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            // Add a loading message
+            const loadingMessage = document.createElement('div');
+            loadingMessage.classList.add('p-3', 'rounded-lg', 'text-sm', 'bg-gray-100');
+            loadingMessage.textContent = '...';
+            chatHistoryDiv.appendChild(loadingMessage);
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+                const result = await response.json();
+                
+                loadingMessage.remove(); // Remove loading message
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    addMessageToChat(text);
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                } else {
+                    addMessageToChat("Sorry, I couldn't generate a response. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                loadingMessage.remove(); // Remove loading message
+                addMessageToChat("There was an error communicating with the AI. Please try again later.");
+            }
+        };
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+                askAI(chatInput.value);
+            }
+        });
+        sendChatBtn.addEventListener('click', () => {
+            if (chatInput.value.trim() !== '') {
+                askAI(chatInput.value);
+            }
+        });
+        
+        // --- Error Reporting Logic ---
+        document.getElementById('submit-error-btn').addEventListener('click', () => {
+            const errorDescription = document.getElementById('error-description').value;
+            const emailAddress = 'shahidussain897@gmail.com';
+
+            if (errorDescription.trim() === '') {
+                showModal("Please enter a description of the error.");
+                return;
+            }
+
+            // Simulate "emailing" by creating a mailto link
+            const subject = `App Error Report: ${new Date().toLocaleString()}`;
+            const body = `Error Description:\n\n${errorDescription}\n\nUser ID: ${userId}\nPage: ${document.title}`;
+            const mailtoLink = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            window.location.href = mailtoLink;
+            toggleSidebar(errorsSidebar, false);
+            showModal("Thank you for reporting the error! An email draft has been created for you.");
+            document.getElementById('error-description').value = '';
+        });
+    </script>
 </body>
 </html>
 
